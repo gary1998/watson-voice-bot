@@ -60,6 +60,7 @@ function callConversation(res) {
     context: JSON.stringify(conversationContext)
   })
     .done(function(res, status) {
+      console.debug('bot', res.results.responseText);
       conversationContext = res.results.context;
       play(res.results.responseText);
       displayMsgDiv(res.results.responseText, 'bot');
@@ -149,7 +150,6 @@ function stopRecording(button) {
 
   recorder &&
     recorder.exportWAV(function(blob) {
-      console.log(blob);
       const url = '/api/speech-to-text';
       const request = new XMLHttpRequest();
       request.open('POST', url, true);
@@ -157,6 +157,7 @@ function stopRecording(button) {
 
       // Decode asynchronously
       request.onload = function() {
+        console.debug('user', request.response);
         callConversation(request.response);
         displayMsgDiv(request.response, 'user');
       };
@@ -170,24 +171,20 @@ window.onload = function init() {
   try {
     // webkit shim
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.webkitGetUserMedia;
     // eslint-disable-next-line
     window.URL = window.URL || window.webkitURL;
 
     context = new AudioContext();
     console.log('Audio context set up.');
-    console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+    console.log('navigator.mediaDevices.getUserMedia ' + (navigator.mediaDevices.getUserMedia ? 'available.' : 'not present!'));
   } catch (e) {
     alert('No web audio support in this browser!');
   }
 
-  navigator.getUserMedia(
-    {
-      audio: true
-    },
-    startUserMedia,
-    function(e) {
-      console.log('No live audio input: ' + e);
-    }
-  );
+  navigator.mediaDevices.getUserMedia({ audio: true })
+  .then(startUserMedia)
+  .catch(e => {
+    console.log('No live audio input: ' + e);
+  });
 };

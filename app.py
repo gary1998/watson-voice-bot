@@ -104,9 +104,12 @@ def getTextFromSpeech():
     response = sttService.recognize(
             audio=request.get_data(cache=False),
             content_type='audio/wav',
+            model='en-US_Telephony',
             timestamps=True,
             word_confidence=True,
-            smart_formatting=True).get_result()
+            smart_formatting=True,
+            keywords=['confirmed', 'potential', 'cie', 'incidents', 'confirmed-cie', 'potential-cie', 'severity', 'list', 'get', 'collect', 'active', 'all', '1', '2', '3'],
+            keywords_threshold=0.5).get_result()
 
     # Ask user to repeat if STT can't transcribe the speech
     if len(response['results']) < 1:
@@ -127,4 +130,4 @@ if __name__ == "__main__":
                      get_authenticator_from_environment('conversation'))
     assistant = AssistantV1(version="2019-11-06", authenticator=authenticator)
     workspace_id = assistant_setup.init_skill(assistant)
-    socketio.run(app, host='0.0.0.0', port=int(port))
+    socketio.run(app, host='0.0.0.0', port=int(port), ssl_context=('cert.pem', 'key.pem'))
